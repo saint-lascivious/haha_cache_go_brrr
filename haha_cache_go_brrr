@@ -30,6 +30,9 @@ resolver_address="127.0.0.1"
 # using the unbound listening port by default
 resolver_port="5335"
 
+# don't use parallel by default
+use_parallel=""
+
 
 # obnoxious ascii header
 # every script on the internet needs a large, preferably coloured, ascii banner
@@ -75,6 +78,10 @@ prepare_domains() {
 	# build the list of commands that we'll send to our resolver
 	sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /tmp/domain_list | cat >> /tmp/dig_commands_main
 	echo -e "\t- done\n"
+	echo "making main dig command list exectuable ..."
+	# make them executable
+	chmod +x /tmp/dig_commands_main
+	echo -e "\t- done\n"
 }
 
 prepare_domains
@@ -92,18 +99,24 @@ split_dig_commands() {
 	echo -e "\t- done\n"
 }
 
-split_dig_commands
-
 
 # lets get parallel
-run_dig_commands() {
-	echo "digging a hole in the internet ..."
+run_parallel_dig_commands() {
+	echo "running dig commands in parallel ..."
 	# use gnu parallel to do exactly what it sounds like
 	parallel -u ::: /tmp/dig_commands_split00 /tmp/dig_commands_split01 /tmp/dig_commands_split02 /tmp/dig_commands_split03
 	echo -e "\t- done\n"
 }
 
-run_dig_commands
+if [ ${use_parallel} = "yes" ]; then
+	split_dig_commands
+	run_parallel_dig_commands
+else
+	echo "running dig commands ..."
+	# run dig commands
+	/tmp/dig_commands_main
+	echo -e "\t- done\n"
+fi
 
 
 # cleanup
@@ -121,4 +134,4 @@ cleanup() {
 cleanup
 
 
-echo -e "\thaha cache go brrr\n"
+echo -e "\e[31;1m                               haha cache go brrr                               \e[0m\n"
