@@ -1,0 +1,110 @@
+
+#!/usr/bin/env bash
+
+# haha cache go brrr
+
+# a very silly, very shitty little DNS cache warmup tool born of sleep
+# deprivation, far too much coffee, and a poor moral compass
+
+# are you marginally inconvenienced by ~200ms cold recursive lookups?
+# do you hate root servers?
+# have you got too much cpu on your hands?
+# is you relationship with your internet service provider too good?
+# ...then step right up, this tool is the tool for you!
+
+
+export LC_ALL=C
+
+# if you supply an alternate csv through domain_list_url you may need
+# to adjust this value
+csv_column="3"
+
+# more information about the following list is available at
+# https://majestic.com/reports/majestic-million
+domain_list_url="https://downloads.majestic.com/majestic_million.csv"
+
+# it would be thoroughly irresponsible to point this at anything you
+# don't own
+resolver_address="192.168.1.20"
+
+# resolver listening port
+# using the unbound listening port by default
+resolver_port="5335"
+
+
+# download the top domains list
+download_list() {
+	if [ ! -f /tmp/top_domains_raw ]; then
+		echo "downloading the top domains list to /tmp ..."
+		echo -e "\tthis may take some time"
+		wget -nv -O /tmp/top_domains_raw ${domain_list_url}
+		echo -e "\t- done\n"
+	else
+		echo -e "\t- top domains list already exists, skipping\n"
+	fi
+}
+
+download_list
+
+
+# prepare domains
+prepare_domains() {
+	echo "preparing the domains ..."
+	# strip out the top 1000 domain entries
+	sed -n -e "2,1001 p" -e "1001 q" /tmp/top_domains_raw | cat >> /tmp/top_1000_domains_raw
+	echo -e "\t- done\n"
+	echo "filtering the domain column from the scv ..."
+	# filter out the domain column from the csv
+	cut -d , -f ${csv_column} /tmp/top_1000_domains_raw | cat >> /tmp/domain_list
+	echo -e "\t- done\n"
+	echo "building the master list of dig commands ..."
+	# build the list of commands that we'll send to our resolver
+	sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /tmp/domain_list | cat >> /tmp/dig_commands_main
+	echo -e "\t- done\n"
+}
+
+prepare_domains
+
+
+# split the dig command list into smaller batches
+split_dig_commands() {
+	echo "splitting dig commands ..."
+	# split into  batches of 250
+	split -d -l 250 /tmp/dig_commands_main /tmp/dig_commands_split
+	echo -e "\t- done\n"
+	echo "making dig command lists exectuable ..."
+	# make them executable
+	chmod +x /tmp/dig_commands_split**
+	echo -e "\t- done\n"
+}
+
+split_dig_commands
+
+
+# lets get parallel
+run_dig_commands() {
+	echo "digging a hole in the internet ..."
+	# use gnu parallel to do exactly what it sounds like
+	parallel -u ::: /tmp/dig_commands_split00 /tmp/dig_commands_split01 /tmp/dig_commands_split02 /tmp/dig_commands_split03
+	echo -e "\t- done\n"
+}
+
+run_dig_commands
+
+
+# cleanup
+cleanup() {
+	echo "removing unneeded files ..."
+	# keep the raw top domains csv around for subsequent runs, at least as long as it's preserved in /tmp for naturally
+	#rm /tmp/top_domains_raw
+	rm /tmp/top_1000_domains_raw
+	rm /tmp/domain_list
+	rm /tmp/dig_commands_main
+	rm /tmp/dig_commands_split*
+	echo -e "\t- done\n"
+}
+
+cleanup
+
+
+echo -e "\thaha cache go brrr\n"
