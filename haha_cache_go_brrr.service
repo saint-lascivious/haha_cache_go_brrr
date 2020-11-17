@@ -1,0 +1,15 @@
+[Unit]
+Description=a very silly, very shitty little DNS cache warmup tool
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/haha_cache_go_brrr
+ExecStop=/usr/bin/pkill haha_cache_go_brrr
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=a very silly, very shitty little DNS cache warmup tool
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target
