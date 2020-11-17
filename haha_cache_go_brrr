@@ -30,6 +30,12 @@ resolver_address="127.0.0.1"
 # using the unbound listening port by default
 resolver_port="5335"
 
+# total domains
+# the number of unique domains we'll query for, preferably divisible
+# by four
+# 1000 domains is a nice "safe" number
+total_domains="1000"
+
 # don't use parallel by default
 use_parallel=""
 
@@ -52,7 +58,7 @@ obnoxious_header
 # download the top domains list
 download_list() {
 	if [ ! -f /tmp/domains_raw ]; then
-		echo "downloading the top domains list to /tmp ..."
+		echo "downloading the top domains list ..."
 		echo -e "\tthis may take some time"
 		wget -nv -O /tmp/domains_raw ${domain_list_url}
 		echo -e "\t- done\n"
@@ -66,9 +72,10 @@ download_list
 
 # prepare domains
 prepare_domains() {
-	echo "preparing the domains ..."
+	echo "preparing the top ${total_domains} domains ..."
 	# strip out the top domain entries
-	sed -n -e "2,1001 p" -e "1001 q" /tmp/domains_raw | cat >> /tmp/top_domains_raw
+	let cut_limit="${total_domains} + 1"
+	sed -n -e "2,${cut_limit} p" -e "${cut_limit} q" /tmp/domains_raw | cat >> /tmp/top_domains_raw
 	echo -e "\t- done\n"
 	echo "filtering the domain column from the scv ..."
 	# filter out the domain column from the csv
@@ -87,7 +94,8 @@ prepare_domains
 split_dig_commands() {
 	echo "splitting dig commands ..."
 	# split into batches
-	split -d -l 250 /tmp/dig_commands_main /tmp/dig_commands_split
+	let split_limit="${total_domains / 4}"
+	split -d -l ${split_limit} /tmp/dig_commands_main /tmp/dig_commands_split
 	echo -e "\t- done\n"
 	echo "making split dig command lists exectuable ..."
 	# make them executable
