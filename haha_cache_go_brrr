@@ -33,8 +33,8 @@ resolver_port="5335"
 # total domains
 # the number of unique domains we'll query for, preferably divisible
 # by four
-# 1000 domains is a nice "safe" number
-total_domains="1000"
+# 500 domains is a nice "safe" number
+total_domains="500"
 
 # don't use parallel by default
 use_parallel=""
