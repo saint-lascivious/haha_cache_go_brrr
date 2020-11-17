@@ -55,6 +55,12 @@ obnoxious_header() {
 obnoxious_header
 
 
+# perform cleanup first
+# previous aborted runs might mess us up, make sure we have a clean
+# slate to work with
+cleanup
+
+
 # download the top domains list
 download_list() {
 	if [ ! -f /tmp/domains_raw ]; then
