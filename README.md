@@ -16,7 +16,9 @@ This tool has been designed to support the Unbound DNS resolver by supplying cac
 
 Users have the ability to set the total number of domains parsed out from the top domains CSV.
 
+```
 default: 1000
+```
 
 * Set the resolver address and port
 
@@ -25,17 +27,20 @@ Uses localhost and Unbound DNS default port by default.
 
 PLEASE ENSURE YOU CONTROL THESE ENDPOINTS
 
+```
 default: resolver_address="127.0.0.1"
 default: resolver_port="5335"
+```
 
 * Set your own top domains CSV location and domain column
 
 Provide your own top domains CSV with the ability to set which column is used as each top domain list isn't guaranteed to have the domain in the same CSV column.
 Uses the Majestic Million top domain list.
 
+```
 default: domain_list_url="https://downloads.majestic.com/majestic_million.csv"
 default: csv_column="3"
-
+```
 * Query an additional custom domain list
 
 Users can provide an addition list of domains, one per line, in the user created /etc/haha_cache_go_brrr/custom_domains file.
@@ -47,7 +52,9 @@ If present this list is parsed and queried after the top N domains.
 Ability to optionally split the master dig command list into four and run using gnu parallel.
 Set use_parallel="yes" to enable.
 
+```
 default: use_parallel=""
+```
 
 * Runs as a service with service timer
 
