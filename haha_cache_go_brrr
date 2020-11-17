@@ -51,10 +51,10 @@ obnoxious_header
 
 # download the top domains list
 download_list() {
-	if [ ! -f /tmp/top_domains_raw ]; then
+	if [ ! -f /tmp/domains_raw ]; then
 		echo "downloading the top domains list to /tmp ..."
 		echo -e "\tthis may take some time"
-		wget -nv -O /tmp/top_domains_raw ${domain_list_url}
+		wget -nv -O /tmp/domains_raw ${domain_list_url}
 		echo -e "\t- done\n"
 	else
 		echo -e "\t- top domains list already exists, skipping\n"
@@ -67,20 +67,16 @@ download_list
 # prepare domains
 prepare_domains() {
 	echo "preparing the domains ..."
-	# strip out the top 1000 domain entries
-	sed -n -e "2,1001 p" -e "1001 q" /tmp/top_domains_raw | cat >> /tmp/top_1000_domains_raw
+	# strip out the top domain entries
+	sed -n -e "2,1001 p" -e "1001 q" /tmp/domains_raw | cat >> /tmp/top_domains_raw
 	echo -e "\t- done\n"
 	echo "filtering the domain column from the scv ..."
 	# filter out the domain column from the csv
-	cut -d , -f ${csv_column} /tmp/top_1000_domains_raw | cat >> /tmp/domain_list
+	cut -d , -f ${csv_column} /tmp/top_domains_raw | cat >> /tmp/domain_list
 	echo -e "\t- done\n"
 	echo "building the master list of dig commands ..."
 	# build the list of commands that we'll send to our resolver
 	sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /tmp/domain_list | cat >> /tmp/dig_commands_main
-	echo -e "\t- done\n"
-	echo "making main dig command list exectuable ..."
-	# make them executable
-	chmod +x /tmp/dig_commands_main
 	echo -e "\t- done\n"
 }
 
@@ -90,10 +86,10 @@ prepare_domains
 # split the dig command list into smaller batches
 split_dig_commands() {
 	echo "splitting dig commands ..."
-	# split into  batches of 250
+	# split into batches
 	split -d -l 250 /tmp/dig_commands_main /tmp/dig_commands_split
 	echo -e "\t- done\n"
-	echo "making dig command lists exectuable ..."
+	echo "making split dig command lists exectuable ..."
 	# make them executable
 	chmod +x /tmp/dig_commands_split**
 	echo -e "\t- done\n"
@@ -108,10 +104,16 @@ run_parallel_dig_commands() {
 	echo -e "\t- done\n"
 }
 
-if [ ${use_parallel} = "yes" ]; then
+
+# we won't use gnu-parallel by default
+if [ "${use_parallel}" = "yes" ]; then
 	split_dig_commands
 	run_parallel_dig_commands
 else
+	echo "making master dig command list exectuable ..."
+	# make them executable
+	chmod +x /tmp/dig_commands_main
+	echo -e "\t- done\n"
 	echo "running dig commands ..."
 	# run dig commands
 	/tmp/dig_commands_main
@@ -123,8 +125,8 @@ fi
 cleanup() {
 	echo "removing unneeded files ..."
 	# keep the raw top domains csv around for subsequent runs, at least as long as it's preserved in /tmp for naturally
-	#rm /tmp/top_domains_raw
-	rm /tmp/top_1000_domains_raw
+	#rm /tmp/domains_raw
+	rm /tmp/top_domains_raw
 	rm /tmp/domain_list
 	rm /tmp/dig_commands_main
 	rm /tmp/dig_commands_split*
