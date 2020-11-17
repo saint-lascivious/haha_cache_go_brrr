@@ -63,7 +63,7 @@ download_list() {
 		wget -nv -O /tmp/domains_raw ${domain_list_url}
 		echo -e "\t- done\n"
 	else
-		echo -e "\t- top domains list already exists, skipping\n"
+		echo -e "\t- top domains list already exists, skipping ...\n"
 	fi
 }
 
@@ -127,6 +127,31 @@ else
 	/tmp/dig_commands_main
 	echo -e "\t- done\n"
 fi
+
+
+# custom domains
+# the user may want to supply their own list of domains to lookup
+custom_domains() {
+	if [ -f /tmp/custom_domains ]; then
+		echo "custom_domains list found ...\n"
+		echo "building custom list of dig commands ..."
+		# build the list of commands that we'll send to our resolver
+		sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /tmp/custom_domains | cat >> /tmp/dig_commands_custom
+		echo -e "\t- done\n"
+		echo "making custom dig command list exectuable ..."
+		# make them executable
+		chmod +x /tmp/dig_commands_custom
+		echo -e "\t- done\n"
+		echo "running custom dig commands ..."
+		# run custom dig commands
+		/tmp/dig_commands_custom
+		echo -e "\t- done\n"
+	else
+		echo -e "\t- custom domains list not found, skipping ...\n"
+	fi
+}
+
+custom_domains
 
 
 # cleanup
