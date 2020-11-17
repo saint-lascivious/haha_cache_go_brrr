@@ -41,6 +41,7 @@ Uses the Majestic Million top domain list.
 default: domain_list_url="https://downloads.majestic.com/majestic_million.csv"
 default: csv_column="3"
 ```
+
 * Query an additional custom domain list
 
 Users can provide an addition list of domains, one per line, in the user created /etc/haha_cache_go_brrr/custom_domains file.
@@ -85,6 +86,16 @@ sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/
 ```
 sudo systemctl enable haha_cache_go_brrr.timer
 sudo systemctl start haha_cache_go_brrr.timer
+```
+
+## Uninstall
+```
+sudo systemctl stop haha_cache_go_brr.timer
+sudo systemctl disable haha_cache_go_brr.timer
+sudo rm /etc/systemd/system/haha_cache_go_brrr.service
+sudo rm /etc/systemd/system/haha_cache_go_brrr.timer
+sudo rm -rf /etc/haha_cache_go_brr
+sudo rm /usr/local/bin/haha_cache_go_brrr
 ```
 
 ## Contact
