@@ -8,7 +8,9 @@ a very silly, very shitty little DNS cache warmup tool born of sleep deprivation
 haha_cache_go_brrr is a cache preloading tool designed for populating the initial and prefetch caches of a recursive resolver such as [Unbound DNS](https://www.nlnetlabs.nl/projects/unbound/about/) configured with a high min-ttl which backs a DNS filter or proxy such as [dnsproxy](https://github.com/AdguardTeam/dnsproxy) or [Pi-hole](https://pi-hole.net/)
 
 Under no circumstances should haha_cache_go_brrr  be run against Pi-hole (Pi-hole deliberately maintains a very short min-ttl and performs no cache prefetching), nor should it be run against any resolver endpoint that does not cache, any ISP/third party upstream DNS providers, or in fact any DNS endpoint that you do not control.
-This tool has been designed to support the Unbound DNS resolver by supplying cache pressure and prefetch rules when unbound is functioning as a caching recursive resolver with large cache slabs and a high min-ttl.
+This tool has been designed to support the Unbound DNS resolver by supplying cache pressure and prefetch rules when unbound is functioning as a caching recursive resolver with [large buffers](https://github.com/saint-lascivious/unbound-config/blob/master/use-large-buffers.conf), [cache slabs](https://github.com/saint-lascivious/unbound-config/blob/master/use-optimized-caches.conf), a high [cache-min-ttl](https://github.com/saint-lascivious/unbound-config/blob/master/use-cache-min-ttl.conf), [multiple threads](https://github.com/saint-lascivious/unbound-config/blob/master/use-optimized-threads.conf), [multi-threaded udp](https://github.com/saint-lascivious/unbound-config/blob/master/use-multithreaded-udp.conf) and [libevent](https://github.com/saint-lascivious/unbound-config/blob/master/use-libevent.conf) if the server is expected to process very large amounts of queries.
+
+Note: If you intend to receive a recursive reply from an Unbound DNS server located anywhere other than localhost you may need to adjust your [access-control](https://github.com/saint-lascivious/unbound-config/blob/master/use-access-control.conf) definitions.
 
 
 ## Features
@@ -87,6 +89,12 @@ sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/
 sudo systemctl enable haha_cache_go_brrr.timer
 sudo systemctl start haha_cache_go_brrr.timer
 ```
+
+## To-Do
+* Allow custom flags other than the script defaults to be used in the dig queries
+
+It would be broadly useful for end users to be able to easily configure the exact string used to generate the dig commands.
+
 
 ## Uninstall
 ```
