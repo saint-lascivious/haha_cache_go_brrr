@@ -55,7 +55,20 @@ obnoxious_header() {
 obnoxious_header
 
 
-# perform cleanup first
+# create haha_cache_go_brrr directory
+create_directory() {
+	echo -e "checking if the haha_cache_go_brrr directory exists ..."
+	if [ ! -d /etc/haha_cache_go_brrr ]; then
+		echo -e "\t- directory not found, creating ..."
+		mkdir /etc/haha_cache_go_brrr
+		echo -e "\t- done\n"
+	else
+		echo -e "\t- directory already exists, skipping ...\n"
+	fi
+}
+
+
+# perform cleanup
 # previous aborted runs might mess us up, make sure we have a clean
 # slate to work with
 cleanup
@@ -63,10 +76,10 @@ cleanup
 
 # download the top domains list
 download_list() {
-	if [ ! -f /tmp/domains_raw ]; then
+	if [ ! -f /etc/haha_cache_go_brrr/domains_raw ]; then
 		echo "downloading the top domains list ..."
 		echo -e "\tthis may take some time"
-		wget -nv -O /tmp/domains_raw ${domain_list_url}
+		wget -nv -O /etc/haha_cache_go_brrr/domains_raw ${domain_list_url}
 		echo -e "\t- done\n"
 	else
 		echo -e "\t- top domains list already exists, skipping ...\n"
@@ -81,15 +94,15 @@ prepare_domains() {
 	echo "preparing the top ${total_domains} domains ..."
 	# strip out the top domain entries
 	let cut_limit="${total_domains} + 1"
-	sed -n -e "2,${cut_limit} p" -e "${cut_limit} q" /tmp/domains_raw | cat >> /tmp/top_domains_raw
+	sed -n -e "2,${cut_limit} p" -e "${cut_limit} q" /etc/haha_cache_go_brrr/domains_raw | cat >> /etc/haha_cache_go_brrr/top_domains_raw
 	echo -e "\t- done\n"
 	echo "filtering the domain column from the scv ..."
 	# filter out the domain column from the csv
-	cut -d , -f ${csv_column} /tmp/top_domains_raw | cat >> /tmp/domain_list
+	cut -d , -f ${csv_column} /etc/haha_cache_go_brrr/top_domains_raw | cat >> /etc/haha_cache_go_brrr/domain_list
 	echo -e "\t- done\n"
 	echo "building the master list of dig commands ..."
 	# build the list of commands that we'll send to our resolver
-	sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /tmp/domain_list | cat >> /tmp/dig_commands_main
+	sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/domain_list | cat >> /etc/haha_cache_go_brrr/dig_commands_main
 	echo -e "\t- done\n"
 }
 
@@ -101,11 +114,11 @@ split_dig_commands() {
 	echo "splitting dig commands ..."
 	# split into batches
 	let split_limit="${total_domains / 4}"
-	split -d -l ${split_limit} /tmp/dig_commands_main /tmp/dig_commands_split
+	split -d -l ${split_limit} /etc/haha_cache_go_brrr/dig_commands_main /etc/haha_cache_go_brrr/dig_commands_split
 	echo -e "\t- done\n"
 	echo "making split dig command lists exectuable ..."
 	# make them executable
-	chmod +x /tmp/dig_commands_split**
+	chmod +x /etc/haha_cache_go_brrr/dig_commands_split**
 	echo -e "\t- done\n"
 }
 
@@ -114,7 +127,7 @@ split_dig_commands() {
 run_parallel_dig_commands() {
 	echo "running dig commands in parallel ..."
 	# use gnu parallel to do exactly what it sounds like
-	parallel -u ::: /tmp/dig_commands_split00 /tmp/dig_commands_split01 /tmp/dig_commands_split02 /tmp/dig_commands_split03
+	parallel -u ::: /etc/haha_cache_go_brrr/dig_commands_split00 /etc/haha_cache_go_brrr/dig_commands_split01 /etc/haha_cache_go_brrr/dig_commands_split02 /etc/haha_cache_go_brrr/dig_commands_split03
 	echo -e "\t- done\n"
 }
 
@@ -126,11 +139,11 @@ if [ "${use_parallel}" = "yes" ]; then
 else
 	echo "making master dig command list exectuable ..."
 	# make them executable
-	chmod +x /tmp/dig_commands_main
+	chmod +x /etc/haha_cache_go_brrr/dig_commands_main
 	echo -e "\t- done\n"
 	echo "running dig commands ..."
 	# run dig commands
-	/tmp/dig_commands_main
+	/etc/haha_cache_go_brrr/dig_commands_main
 	echo -e "\t- done\n"
 fi
 
@@ -138,19 +151,19 @@ fi
 # custom domains
 # the user may want to supply their own list of domains to lookup
 custom_domains() {
-	if [ -f /tmp/custom_domains ]; then
+	if [ -f /etc/haha_cache_go_brrr/custom_domains ]; then
 		echo "custom_domains list found ...\n"
 		echo "building custom list of dig commands ..."
 		# build the list of commands that we'll send to our resolver
-		sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /tmp/custom_domains | cat >> /tmp/dig_commands_custom
+		sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 		echo "making custom dig command list exectuable ..."
 		# make them executable
-		chmod +x /tmp/dig_commands_custom
+		chmod +x /etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 		echo "running custom dig commands ..."
 		# run custom dig commands
-		/tmp/dig_commands_custom
+		/etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 	else
 		echo -e "\t- custom domains list not found, skipping ...\n"
@@ -163,12 +176,13 @@ custom_domains
 # cleanup
 cleanup() {
 	echo "removing unneeded files ..."
-	# keep the raw top domains csv around for subsequent runs, at least as long as it's preserved in /tmp for naturally
-	#rm /tmp/domains_raw
-	rm /tmp/top_domains_raw
-	rm /tmp/domain_list
-	rm /tmp/dig_commands_main
-	rm /tmp/dig_commands_split*
+	# keep the raw top domains csv around for subsequent runs
+	#rm /etc/haha_cache_go_brrr/domains_raw
+	rm /etc/haha_cache_go_brrr/top_domains_raw
+	rm /etc/haha_cache_go_brrr/domain_list
+	rm /etc/haha_cache_go_brrr/dig_commands_main
+	rm /etc/haha_cache_go_brrr/dig_commands_split*
+	rm /etc/haha_cache_go_brrr/dig_commands_custom
 	echo -e "\t- done\n"
 }
 
