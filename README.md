@@ -85,12 +85,19 @@ cd /usr/local/bin/
 sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/main/haha_cache_go_brrr
 chmod +x /usr/local/bin/haha_cache_go_brrr
 ```
+* First run
+```
+sudo haha_cache_go_brrr
+```
+
+## Optional (recommended)
 * Download haha_cache_go_brrr service files:
 ```
 cd /etc/systemd/system/
 sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/main/haha_cache_go_brrr.service
 sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/main/haha_cache_go_brrr.timer
 ```
+
 * Start the haha_cache_go_brrr service
 ```
 sudo systemctl enable haha_cache_go_brrr.timer
