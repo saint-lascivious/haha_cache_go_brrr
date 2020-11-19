@@ -27,7 +27,7 @@ domain_list_url="https://downloads.majestic.com/majestic_million.csv"
 
 # it would be thoroughly irresponsible to point this at anything you
 # don't own
-resolver_address="127.0.0.1"
+resolver_address="192.168.1.20"
 
 # resolver listening port
 # using the unbound listening port by default
@@ -101,8 +101,8 @@ create_directory
 
 # download the top domains list
 download_list() {
+	echo "downloading the top domains list ..."
 	if [ ! -f /etc/haha_cache_go_brrr/domains_raw ]; then
-		echo "downloading the top domains list ..."
 		echo -e "\tthis may take some time"
 		wget -nv -O /etc/haha_cache_go_brrr/domains_raw ${domain_list_url}
 		echo -e "\t- done\n"
@@ -176,8 +176,9 @@ fi
 # custom domains
 # the user may want to supply their own list of domains to lookup
 custom_domains() {
+	echo -e "checking if the custom_domains file exists ..."
 	if [ -f /etc/haha_cache_go_brrr/custom_domains ]; then
-		echo "custom_domains list found ...\n"
+		echo "\t- custom_domains list found ...\n"
 		echo "building custom list of dig commands ..."
 		# build the list of commands that we'll send to our resolver
 		sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
@@ -191,7 +192,7 @@ custom_domains() {
 		/etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 	else
-		echo -e "custom domains list not found, skipping ...\n"
+		echo -e "\t- custom domains list not found, skipping ...\n"
 	fi
 }
 
