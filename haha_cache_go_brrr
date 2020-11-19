@@ -27,7 +27,7 @@ domain_list_url="https://downloads.majestic.com/majestic_million.csv"
 
 # it would be thoroughly irresponsible to point this at anything you
 # don't own
-resolver_address="192.168.1.20"
+resolver_address="127.0.0.1"
 
 # resolver listening port
 # using the unbound listening port by default
