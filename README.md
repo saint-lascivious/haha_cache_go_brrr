@@ -93,7 +93,7 @@ sudo haha_cache_go_brrr
 ## Optional (recommended)
 * Download haha_cache_go_brrr service files:
 ```
-cd /etc/systemd/system/
+cd /lib/systemd/system/
 sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/main/haha_cache_go_brrr.service
 sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/main/haha_cache_go_brrr.timer
 ```
@@ -136,8 +136,8 @@ Simple DNS proxy with DoH, DoT, DoQ and DNSCrypt support
 ```
 sudo systemctl stop haha_cache_go_brr.timer
 sudo systemctl disable haha_cache_go_brr.timer
-sudo rm /etc/systemd/system/haha_cache_go_brrr.service
-sudo rm /etc/systemd/system/haha_cache_go_brrr.timer
+sudo rm /lib/systemd/system/haha_cache_go_brrr.service
+sudo rm /lib/systemd/system/haha_cache_go_brrr.timer
 sudo rm -rf /etc/haha_cache_go_brr
 sudo rm /usr/local/bin/haha_cache_go_brrr
 ```
