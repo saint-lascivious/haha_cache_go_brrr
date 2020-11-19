@@ -72,7 +72,7 @@ The systemd service timer approach ensures that haha_cache_go_brrr runs ten minu
 
 
 ## Usage
-* Install dependencies
+* Install Dependencies
 [dns-utils](https://packages.debian.org/buster/dns-utils)
 [parallel](https://packages.debian.org/buster/parallel)
 ```
@@ -85,7 +85,7 @@ cd /usr/local/bin/
 sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/main/haha_cache_go_brrr
 chmod +x /usr/local/bin/haha_cache_go_brrr
 ```
-* First run
+* Run
 ```
 sudo haha_cache_go_brrr
 ```
@@ -98,16 +98,38 @@ sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/
 sudo wget https://raw.githubusercontent.com/saint-lascivious/haha_cache_go_brrr/main/haha_cache_go_brrr.timer
 ```
 
-* Start the haha_cache_go_brrr service
+* Start The haha_cache_go_brrr Service
 ```
 sudo systemctl enable haha_cache_go_brrr.timer
 sudo systemctl start haha_cache_go_brrr.timer
 ```
 
 ## To-Do
-* Nothing right now.
+* Custom Dig Flags
 
-Suggestions?
+It would be broadly useful for end users to be able to easily configure the exact string used to generate the dig commands.
+
+* Suggestions?
+
+Reasonable suggestions within the scope of the project are welcomed.
+Contact details are available below.
+
+
+## Related Projects
+* [unbound](https://github.com/NLnetLabs/unbound)
+Unbound is a validating, recursive, and caching DNS resolver.
+
+* [unbound-config](https://github.com/saint-lascivious/unbound-config)
+configuration file for unbound recursive dns resolver
+
+* [unbound-get-root-hints](https://github.com/saint-lascivious/unbound-get-root-hints)
+simple systemd timer to periodically update root.hints for unbound recursive resolver
+
+* [pi-hole](https://github.com/pi-hole/pi-hole)
+A black hole for Internet advertisements
+
+* [dnsproxy](https://github.com/AdguardTeam/dnsproxy)
+Simple DNS proxy with DoH, DoT, DoQ and DNSCrypt support
 
 
 ## Uninstall

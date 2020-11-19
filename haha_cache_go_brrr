@@ -19,7 +19,7 @@ export LC_ALL=C
 csv_column="3"
 
 # the dig flag list we'll be forming our queries with
-dig_flags="+short +time=10 +tries=1"
+dig_flags="+short +time=10 +tries=1 "
 
 # more information about the following list is available at
 # https://majestic.com/reports/majestic-million
@@ -58,23 +58,45 @@ obnoxious_header() {
 obnoxious_header
 
 
-# create haha_cache_go_brrr directory
-create_directory() {
-	echo -e "checking if the haha_cache_go_brrr directory exists ..."
-	if [ ! -d /etc/haha_cache_go_brrr ]; then
-		echo -e "\t- directory not found, creating ..."
-		mkdir /etc/haha_cache_go_brrr
-		echo -e "\t- done\n"
-	else
-		echo -e "\t- directory already exists, skipping ...\n"
-	fi
-}
-
-
 # perform cleanup
 # previous aborted runs might mess us up, make sure we have a clean
 # slate to work with
+cleanup() {
+        echo "removing unneeded files ..."
+	if [ -f /etc/haha_cache_go_brrr/top_domains_raw ]; then
+		rm /etc/haha_cache_go_brrr/top_domains_raw
+	fi
+	if [ -f /etc/haha_cache_go_brrr/domain_list ]; then
+		rm /etc/haha_cache_go_brrr/domain_list
+	fi
+	if [ -f /etc/haha_cache_go_brrr/dig_commands_main ]; then
+		rm /etc/haha_cache_go_brrr/dig_commands_main
+	fi
+	if [ -f /etc/haha_cache_go_brrr/dig_commands_split01* ]; then
+		rm /etc/haha_cache_go_brrr/dig_commands_split*
+	fi
+	if [ -f /etc/haha_cache_go_brrr/dig_commands_custom ]; then
+		rm /etc/haha_cache_go_brrr/dig_commands_custom
+	fi
+	echo -e "\t- done\n"
+}
+
 cleanup
+
+
+# create haha_cache_go_brrr directory
+create_directory() {
+        echo -e "checking if the haha_cache_go_brrr directory exists ..."
+        if [ ! -d /etc/haha_cache_go_brrr ]; then
+                echo -e "\t- directory not found, creating ..."
+                mkdir /etc/haha_cache_go_brrr
+                echo -e "\t- done\n"
+        else
+                echo -e "\t- directory already exists, skipping ...\n"
+        fi
+}
+
+create_directory
 
 
 # download the top domains list
@@ -105,7 +127,7 @@ prepare_domains() {
 	echo -e "\t- done\n"
 	echo "building the master list of dig commands ..."
 	# build the list of commands that we'll send to our resolver
-	sed -e "s/.*/dig ${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/domain_list | cat >> /etc/haha_cache_go_brrr/dig_commands_main
+	sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/domain_list | cat >> /etc/haha_cache_go_brrr/dig_commands_main
 	echo -e "\t- done\n"
 }
 
@@ -116,7 +138,7 @@ prepare_domains
 split_dig_commands() {
 	echo "splitting dig commands ..."
 	# split into batches
-	let split_limit="${total_domains / 4}"
+	let split_limit="${total_domains} / 4"
 	split -d -l ${split_limit} /etc/haha_cache_go_brrr/dig_commands_main /etc/haha_cache_go_brrr/dig_commands_split
 	echo -e "\t- done\n"
 	echo "making split dig command lists exectuable ..."
@@ -158,7 +180,7 @@ custom_domains() {
 		echo "custom_domains list found ...\n"
 		echo "building custom list of dig commands ..."
 		# build the list of commands that we'll send to our resolver
-		sed -e "s/.*/dig ${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
+		sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 		echo "making custom dig command list exectuable ..."
 		# make them executable
@@ -169,7 +191,7 @@ custom_domains() {
 		/etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 	else
-		echo -e "\t- custom domains list not found, skipping ...\n"
+		echo -e "custom domains list not found, skipping ...\n"
 	fi
 }
 
@@ -177,19 +199,12 @@ custom_domains
 
 
 # cleanup
-cleanup() {
-	echo "removing unneeded files ..."
-	# keep the raw top domains csv around for subsequent runs
-	#rm /etc/haha_cache_go_brrr/domains_raw
-	rm /etc/haha_cache_go_brrr/top_domains_raw
-	rm /etc/haha_cache_go_brrr/domain_list
-	rm /etc/haha_cache_go_brrr/dig_commands_main
-	rm /etc/haha_cache_go_brrr/dig_commands_split*
-	rm /etc/haha_cache_go_brrr/dig_commands_custom
-	echo -e "\t- done\n"
-}
-
 cleanup
 
 
-echo -e "\e[31;1m                               haha cache go brrr                               \e[0m\n"
+# obnoxious footer
+obnoxious_footer() {
+	echo -e "\e[31;1m                               haha cache go brrr                               \e[0m\n"
+}
+
+obnoxious_footer
