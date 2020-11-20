@@ -58,6 +58,24 @@ obnoxious_header() {
 obnoxious_header
 
 
+# root check
+root_check() {
+	echo -e "checking if the user can obtain root ..."
+	if [[ ! $EUID -eq 0 ]];then
+		if [[ -x "$(command -v sudo)" ]]; then
+			exec sudo bash "$0" "$@"
+			exit $?
+		else
+			echo -e "\e[31;1m\t- please run haha_cache_go_brrr as root or install sudo\e[0m\n"
+			exit 1
+		fi
+	fi
+	echo -e "\t- done\n"
+}
+
+root_check
+
+
 # perform cleanup
 # previous aborted runs might mess us up, make sure we have a clean
 # slate to work with
