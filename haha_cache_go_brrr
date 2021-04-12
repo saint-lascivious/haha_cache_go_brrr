@@ -19,7 +19,7 @@ export LC_ALL=C
 csv_column="3"
 
 # the dig flag list we'll be forming our queries with
-dig_flags="+short +time=10 +tries=1 "
+dig_flags="+short +time=20 +tries=3"
 
 # more information about the following list is available at
 # https://majestic.com/reports/majestic-million
@@ -76,6 +76,21 @@ root_check() {
 root_check
 
 
+# create haha_cache_go_brrr directory
+create_directory() {
+        echo -e "checking if the haha_cache_go_brrr directory exists ..."
+        if [ ! -d /etc/haha_cache_go_brrr ]; then
+                echo -e "\t- directory not found, creating ..."
+                mkdir /etc/haha_cache_go_brrr
+                echo -e "\t- done\n"
+        else
+                echo -e "\t- directory already exists, skipping ...\n"
+        fi
+}
+
+create_directory
+
+
 # perform cleanup
 # previous aborted runs might mess us up, make sure we have a clean
 # slate to work with
@@ -100,21 +115,6 @@ cleanup() {
 }
 
 cleanup
-
-
-# create haha_cache_go_brrr directory
-create_directory() {
-        echo -e "checking if the haha_cache_go_brrr directory exists ..."
-        if [ ! -d /etc/haha_cache_go_brrr ]; then
-                echo -e "\t- directory not found, creating ..."
-                mkdir /etc/haha_cache_go_brrr
-                echo -e "\t- done\n"
-        else
-                echo -e "\t- directory already exists, skipping ...\n"
-        fi
-}
-
-create_directory
 
 
 # download the top domains list
@@ -145,7 +145,7 @@ prepare_domains() {
 	echo -e "\t- done\n"
 	echo "building the master list of dig commands ..."
 	# build the list of commands that we'll send to our resolver
-	sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/domain_list | cat >> /etc/haha_cache_go_brrr/dig_commands_main
+	sed -e "s/.*/dig ${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/domain_list | cat >> /etc/haha_cache_go_brrr/dig_commands_main
 	echo -e "\t- done\n"
 }
 
@@ -196,10 +196,10 @@ fi
 custom_domains() {
 	echo -e "checking if the custom_domains file exists ..."
 	if [ -f /etc/haha_cache_go_brrr/custom_domains ]; then
-		echo "\t- custom_domains list found ...\n"
+		echo -e "\t- custom_domains list found ...\n"
 		echo "building custom list of dig commands ..."
 		# build the list of commands that we'll send to our resolver
-		sed -e "s/.*/dig +short +time=10 +tries=1 & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
+		sed -e "s/.*/dig ${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 		echo "making custom dig command list exectuable ..."
 		# make them executable
@@ -218,6 +218,7 @@ custom_domains
 
 
 # cleanup
+# comment this out if you want to examine any of the files created during a run
 cleanup
 
 
