@@ -19,6 +19,8 @@ export LC_ALL=C
 csv_column="3"
 
 # the dig flag list we'll be forming our queries with
+# add to this all you want
+# see "man dig" for more info
 dig_flags="+short +time=20 +tries=3"
 
 # more information about the following list is available at

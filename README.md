@@ -109,10 +109,6 @@ sudo systemctl start haha_cache_go_brrr.timer
 
 Pass custom arguments to haha_cache_go_brrr directly from the command line
 
-* Custom Dig Flags
-
-It would be broadly useful for end users to be able to easily configure the exact string used to generate the dig commands.
-
 * External Variables File
 
 Source variables from an external file in /etc/haha_cache_go_brrr perhaps
