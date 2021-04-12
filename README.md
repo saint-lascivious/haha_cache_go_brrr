@@ -38,7 +38,7 @@ default: resolver_port="5335"
 
 More information on the dig command structure can be found [here](https://linux.die.net/man/1/dig).
 ```
-default: dig_flags="+short +time=10 +tries=1"
+default: dig_flags="+short +time=20 +tries=3"
 ```
 
 * Set your own top domains CSV URL and choose a domain column within it
@@ -90,7 +90,7 @@ chmod +x /usr/local/bin/haha_cache_go_brrr
 haha_cache_go_brrr
 ```
 
-## Optional (recommended)
+## Optional (not recommended)
 * Download haha_cache_go_brrr service files:
 ```
 cd /etc/systemd/system/
