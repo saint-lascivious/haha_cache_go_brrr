@@ -11,7 +11,6 @@
 # is you relationship with your internet service provider too good?
 # ...then step right up, this tool is the tool for you!
 
-
 export LC_ALL=C
 
 # if you supply an alternate csv through domain_list_url you may need
@@ -21,7 +20,7 @@ csv_column="3"
 # the dig flag list we'll be forming our queries with
 # add to this all you want
 # see "man dig" for more info
-dig_flags="+short +time=20 +tries=3"
+dig_flags="+bufsize=1232 +short +timeout=5 +tries=3"
 
 # more information about the following list is available at
 # https://majestic.com/reports/majestic-million
@@ -32,8 +31,7 @@ domain_list_url="https://downloads.majestic.com/majestic_million.csv"
 resolver_address="127.0.0.1"
 
 # resolver listening port
-# using the unbound listening port by default
-resolver_port="5335"
+resolver_port="53"
 
 # total domains
 # the number of unique domains we'll query for, preferably divisible
@@ -42,8 +40,7 @@ resolver_port="5335"
 total_domains="500"
 
 # don't use parallel by default
-use_parallel=""
-
+use_parallel="yes"
 
 # obnoxious ascii header
 # every script on the internet needs a large, preferably coloured, ascii banner
@@ -57,14 +54,12 @@ obnoxious_header() {
 	echo -e "\e[31;1m             a very silly, very shitty little DNS cache warmup tool             \e[0m\n"
 }
 
-obnoxious_header
-
 
 # root check
 root_check() {
-	echo -e "checking if the user can obtain root ..."
 	if [[ ! $EUID -eq 0 ]];then
 		if [[ -x "$(command -v sudo)" ]]; then
+			obnoxious_header
 			exec sudo bash "$0" "$@"
 			exit $?
 		else
@@ -72,7 +67,6 @@ root_check() {
 			exit 1
 		fi
 	fi
-	echo -e "\t- done\n"
 }
 
 root_check
@@ -124,7 +118,7 @@ download_list() {
 	echo "downloading the top domains list ..."
 	if [ ! -f /etc/haha_cache_go_brrr/domains_raw ]; then
 		echo -e "\tthis may take some time"
-		wget -nv -O /etc/haha_cache_go_brrr/domains_raw ${domain_list_url}
+		wget -q --show-progress -O /etc/haha_cache_go_brrr/domains_raw ${domain_list_url}
 		echo -e "\t- done\n"
 	else
 		echo -e "\t- top domains list already exists, skipping ...\n"
@@ -147,7 +141,7 @@ prepare_domains() {
 	echo -e "\t- done\n"
 	echo "building the master list of dig commands ..."
 	# build the list of commands that we'll send to our resolver
-	sed -e "s/.*/dig ${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/domain_list | cat >> /etc/haha_cache_go_brrr/dig_commands_main
+	sed -e "s/.*/${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/domain_list | cat >> /etc/haha_cache_go_brrr/dig_commands_main
 	echo -e "\t- done\n"
 }
 
@@ -161,10 +155,6 @@ split_dig_commands() {
 	let split_limit="${total_domains} / 4"
 	split -d -l ${split_limit} /etc/haha_cache_go_brrr/dig_commands_main /etc/haha_cache_go_brrr/dig_commands_split
 	echo -e "\t- done\n"
-	echo "making split dig command lists exectuable ..."
-	# make them executable
-	chmod +x /etc/haha_cache_go_brrr/dig_commands_split**
-	echo -e "\t- done\n"
 }
 
 
@@ -172,7 +162,7 @@ split_dig_commands() {
 run_parallel_dig_commands() {
 	echo "running dig commands in parallel ..."
 	# use gnu parallel to do exactly what it sounds like
-	parallel -u ::: /etc/haha_cache_go_brrr/dig_commands_split00 /etc/haha_cache_go_brrr/dig_commands_split01 /etc/haha_cache_go_brrr/dig_commands_split02 /etc/haha_cache_go_brrr/dig_commands_split03
+	parallel -u dig -f ::: /etc/haha_cache_go_brrr/dig_commands_split00 /etc/haha_cache_go_brrr/dig_commands_split01 /etc/haha_cache_go_brrr/dig_commands_split02 /etc/haha_cache_go_brrr/dig_commands_split03
 	echo -e "\t- done\n"
 }
 
@@ -182,13 +172,9 @@ if [ "${use_parallel}" = "yes" ]; then
 	split_dig_commands
 	run_parallel_dig_commands
 else
-	echo "making master dig command list exectuable ..."
-	# make them executable
-	chmod +x /etc/haha_cache_go_brrr/dig_commands_main
-	echo -e "\t- done\n"
 	echo "running dig commands ..."
 	# run dig commands
-	/etc/haha_cache_go_brrr/dig_commands_main
+	dig -f /etc/haha_cache_go_brrr/dig_commands_main
 	echo -e "\t- done\n"
 fi
 
@@ -201,15 +187,11 @@ custom_domains() {
 		echo -e "\t- custom_domains list found ...\n"
 		echo "building custom list of dig commands ..."
 		# build the list of commands that we'll send to our resolver
-		sed -e "s/.*/dig ${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
-		echo -e "\t- done\n"
-		echo "making custom dig command list exectuable ..."
-		# make them executable
-		chmod +x /etc/haha_cache_go_brrr/dig_commands_custom
+		sed -e "s/.*/${dig_flags} & @${resolver_address} -p ${resolver_port}/" /etc/haha_cache_go_brrr/custom_domains | cat >> /etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 		echo "running custom dig commands ..."
 		# run custom dig commands
-		/etc/haha_cache_go_brrr/dig_commands_custom
+		dig -f /etc/haha_cache_go_brrr/dig_commands_custom
 		echo -e "\t- done\n"
 	else
 		echo -e "\t- custom domains list not found, skipping ...\n"
